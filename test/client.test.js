@@ -1004,7 +1004,12 @@ test('setup reconnect', function (t) {
       reconnect: true,
       log: LOG
     });
+  rClient.on('error', (err) => {
+    t.comment('=> on error')
+    t.comment(err.message)
+  })
   rClient.on('setup', function (clt, cb) {
+    t.comment('=> on setup')
     clt.bind(BIND_DN, BIND_PW, function (err, res) {
       t.ifError(err);
       cb(err);
@@ -1012,9 +1017,12 @@ test('setup reconnect', function (t) {
   });
 
   function doSearch(_, cb) {
+    t.comment('=> doSearch')
     rClient.search(SUFFIX, {scope: 'base'}, function (err, res) {
+      t.comment('=> doSearch result')
       t.ifError(err);
       res.on('end', function () {
+        t.comment('=> doSearch end')
         cb();
       });
     });
@@ -1025,11 +1033,13 @@ test('setup reconnect', function (t) {
       function cleanDisconnect(_, cb) {
         t.ok(rClient.connected);
         rClient.once('close', function (had_err) {
+          t.comment('=> cleanDisconnect once closed')
           t.ifError(had_err);
           t.equal(rClient.connected, false);
           cb();
         });
         rClient.unbind();
+        t.comment('=> cleanDisconnect')
       },
       doSearch,
       function simulateError(_, cb) {
