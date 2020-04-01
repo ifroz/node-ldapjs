@@ -605,6 +605,25 @@ test('search basic', function (t) {
   });
 });
 
+test('search basic slow event listening', function (t) {
+  client.search('cn=test, ' + SUFFIX, '(objectclass=*)', function (err, res) {
+    setTimeout(function () {
+      t.ifError(err);
+      t.ok(res);
+      var gotEntry = 0;
+      res.on('searchEntry', function (entry) {
+        gotEntry++;
+      });
+      res.on('error', function (err) {
+        t.fail(err);
+      });
+      res.on('end', function (res) {
+        t.equal(gotEntry, 2);
+        t.end();
+      });
+    }, 100);
+  })
+});
 
 test('search sizeLimit', function (t) {
   t.test('over limit', function (t2) {
